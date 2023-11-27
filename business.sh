@@ -11,12 +11,15 @@ function read_business_file()
 {
     read -p "Give the path of the file (press Enter for the default file Businesses.csv): " user_path
 
-    if [ -n "$user_path" ]; then
+    if [ -n "$user_path" ]; 
+    then
         file_path="$user_path"
     fi
 
-    if [ -f "$file_path" ]; then
-        echo "File $file_path was not found."
+    if [ -f "$file_path" ]; 
+    then
+        echo "File $file_path was found."
+        awk -F',' '{print}' "$file_path"
     else
         echo "File $file_path was not found. Please check the path and try again."
     fi
