@@ -1,0 +1,35 @@
+initialize semaphore serving=1
+initialize semaphore ingredients=0
+initialize constant MAX_PORTIONS=6+5 //11
+initialize variable pot=MAX_PORTIONS
+
+process Diner
+do forever
+    wait(serving)
+    if pot>0
+        take_food()
+        pot=pot-1
+    signal(serving)
+    if pot==0
+        signal(ingredients)
+
+process Chef
+do forever
+    wait(ingredients)
+    cook_food()
+    pot=MAX_PORTIONS
+
+process Helper
+do forever
+    wait(ingredients)
+    if need_beans
+        fetch_ingredients("beans")
+    else if need_carrots
+        fetch_ingredients("carrots")
+    signal(ingredients)
+
+procedure take_food() //Fellow student takes food
+
+procedure cook_food() //Chef cooks food
+
+procedure fetch_ingredients(type) //Helper brings the needed amount by the chef of ingredient specified in parameter type={carrots, beans}
