@@ -1,0 +1,55 @@
+initialize semaphore serving=1 //Δυαδικός σημαφόρος που ενημερώνει ένοικο για το αν μπορεί να σερβιριστεί
+initialize semaphore pot_empty=0 //Δυαδικός σημαφόρος που ενημερώνει τον μάγειρα όταν η κατσαρόλα αδειάζει
+initialize semaphore beans_needed=0 //Δυαδικός σημαφόρος που ενημερώνει τον βοηθό ότι ο μάγειρας χρειάζεται φασόλια
+initialize semaphore carrots_needed=0 //Δυαδικός σημαφόρος που ενημερώνει τον βοηθό ότι ο μάγειρας χρειάζεται καρότα
+initialize constant MAX_PORTIONS=11 //Μέγιστο πλήθος μερίδων κατσαρόλας
+initialize constant BEANS=6.5 //Απαιτούμενη ποσότητα φασολιών για να μαγειρέψει ο μάγειρας
+initialize constant CARROTS=3.5 //Απαιτούμενη ποσότητα φασολιών για να μαγειρέψει ο μάγειρας
+initialize constant MAX_CARRY=3 //Μέγιστη ποσότητα που μπορεί να κουβαλήσει ο βοηθός από την κάθε αποθήκη στην κουζίνα
+initialize variable pot=MAX_PORTIONS //Μεταβλήτη που δείχνει την ποσότητα σε μερίδες που διαθέτει η κατσαρόλα κάθε χρονική στιγμή
+initialize variable beans_in_storage=0 //Μεταβλητή που δείχνει την ποσότητα φασολιών που διαθέτει ο μάγειρα κάθε χρονική στιγμή
+initialize variable carrots_in_storage=0 //Μεταβλητή που δείχνει την ποσότητα φασολιών που διαθέτει ο μάγειρα κάθε χρονική στιγμή
+
+process Diner
+repeat
+    down(serving)
+    if (pot > 0)
+        take_food()
+        pot = pot - 1
+    up(serving)
+    if (pot == 0) //Αν αδειάσει η κατσαρόλα ενημέρωσε τον μάγειρα
+        up(pot_empty)
+forever
+
+process Chef
+repeat
+    down(pot_empty)
+    if (beans_in_storage < BEANS) //Αν δεν έχει την απαραίτητη ποσότητα φασολιών ενημέρωσε τον βοηθό
+        up(beans_needed)
+    if (carrots_in_storage < CARROTS) //Αν δεν έχει την απαραίτητη ποσότητα φασολιών ενημέρωσε τον βοηθό
+        up(carrots_needed)
+    down(beans_needed)
+    down(carrots_needed)
+    cook_food() //Μαγείρεψε
+    pot = MAX_PORTIONS //Μετα το μαγείρεμα η κατσαρόλα έιναι πάλι γεμάτη και η διαθέσιμη ποσότητα φασολιών και καρότων είναι μηδενική
+    beans_in_storage = 0
+    carrots_in_storage = 0
+forever
+
+process Helper
+repeat
+    if (beans_in_storage<BEANS) //Αν μάγειρας δεν έχει την απαραίτητη ποσότητα φασολιών μετέφερε ποσότητα ΜΑΧ_CARRY φασολιών στην κουζίνα
+        down(beans_needed)
+        fetch_ingredients("beans")
+        beans_in_storage+=MAX_CARRY
+    if (carrots_in_storage<CARROTS) //Αν μάγειρας δεν έχει την απαραίτητη ποσότητα φασολιών μετέφερε ποσότητα ΜΑΧ_CARRY φασολιών στην κουζίνα
+        down(carrots_needed)
+        fetch_ingredients("carrots")
+        carrots_in_storage+=MAX_CARRY
+forever
+
+procedure take_food() //Ένοικος παίρνει φαγητό
+
+procedure cook_food() //Μάγειρας μαγειρεύει φαγητό
+
+procedure fetch_ingredients(type) /* Βοηθός πηγαίνει στην αποθήκη και φέρνει την απαραίτητη ποσότητα υλικών μεταφέροντας έως MAX_CARRY κιλά κάθε φορά*/
